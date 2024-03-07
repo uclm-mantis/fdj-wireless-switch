@@ -43,14 +43,20 @@ typedef struct message_ {
 } message;
 
 
-void ARDUINO_ISR_ATTR isr(void* param) {
-    pulsador* button = (pulsador*) param;
-    TickType_t current = xTaskGetTickCountFromISR();
+void registerButtonEvent(pulsador* button) {
     int v = digitalRead(button->pin);
-    if ( v != button->lastV && current - button->lastT > 50 / portTICK_PERIOD_MS) { // debouncing
+    if (v != button->lastV) { 
         button->presionado = (v != 0);
         button->liberado = (v == 0);
         button->lastV = v;
+    }
+}
+
+void ARDUINO_ISR_ATTR isr(void* param) {
+    pulsador* button = (pulsador*) param;
+    TickType_t current = xTaskGetTickCountFromISR();
+    if (current - button->lastT > 50 / portTICK_PERIOD_MS) { // debouncing
+        registerButtonEvent(button);
         button->lastT = current;
     }
 }
@@ -86,6 +92,10 @@ void setup() {
 void loop() {
     for (pulsador* p = pulsadores; p < pulsadores + N_PULSADORES; ++p) {
         checkEvent(p);
+    }
+    delay(100);
+    for (pulsador* p = buttons; p < buttons + N_PULSADORES; ++p) {
+        registerButtonEvent(p);
     }
     // Ahora debería dormir todo lo que pueda
     // https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/api-reference/system/sleep_modes.html
