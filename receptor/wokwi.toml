@@ -1,0 +1,4 @@
+[wokwi]
+version = 1
+firmware = 'build/receptor.bin'
+elf = 'build/receptor.elf'
