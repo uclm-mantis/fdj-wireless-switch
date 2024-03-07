@@ -40,19 +40,25 @@ typedef struct message_ {
   bool presionado;
 } message;
 
-void isr(void* param) {
-    pulsador* button = (pulsador*) param;
-    TickType_t current = xTaskGetTickCountFromISR();
+void register_button_event(pulsador* button) {
     int v = gpio_get_level(button->pin);
-    if ( v != button->lastV && current - button->lastT > 50 / portTICK_PERIOD_MS) { // debouncing
+    if (v != button->lastV) { 
         button->presionado = (v != 0);
         button->liberado = (v == 0);
         button->lastV = v;
+    }
+}
+
+void isr(void* param) {
+    pulsador* button = (pulsador*) param;
+    TickType_t current = xTaskGetTickCountFromISR();
+    if (current - button->lastT > 50 / portTICK_PERIOD_MS) { // debouncing
+        register_button_event(button);
         button->lastT = current;
     }
 }
 
-static void check_event(pulsador* button) {
+static void check_button_event(pulsador* button) {
     if (!button->presionado && !button->liberado) return;
 
     message msg = { button->id, button->presionado };
@@ -97,8 +103,15 @@ void app_main(void)
     entradas_init();
     wifi_init();
     espnow_init();
-    for (pulsador* p = pulsadores; p < pulsadores + N_PULSADORES; ++p) {
-        check_event(p);
+    TickType_t last = xTaskGetTickCount();
+    for(;;) {
+        for (pulsador* p = pulsadores; p < pulsadores + N_PULSADORES; ++p) {
+            check_event(p);
+        }
         xTaskDelayUntil(&last, 50/ portTICK_PERIOD_MS);
+        for (pulsador* p = pulsadores; p < pulsadores + N_PULSADORES; ++p) {
+            register_button_event(p);
+        }
+        // go to sleep
     }
 }
