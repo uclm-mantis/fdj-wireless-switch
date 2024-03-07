@@ -11,10 +11,10 @@ struct salida_
 };
 
 salida salidas[] = {
-    { 1, 6,  0 },
-    { 2, 7,  1 },
-    { 3, 8,  3 },
-    { 4, 10, 4 }
+    { .id = 1, .pin = 6,   .pinModoPulsador = 0 },
+    { .id = 2, .pin = 7,   .pinModoPulsador = 1 },
+    { .id = 3, .pin = 8,   .pinModoPulsador = 3 },
+    { .id = 4, .pin = 10,  .pinModoPulsador = 4 },
 };
 
 const uint8_t N_SALIDAS = sizeof(salidas) / sizeof(salidas[0]);

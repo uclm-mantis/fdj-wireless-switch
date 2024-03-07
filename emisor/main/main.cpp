@@ -19,11 +19,10 @@ struct pulsador_ {
 };
 
 pulsador p[] = {
-    // pin id  press release v  t
-    {  44, 1, false, false, 0, 0 },
-    {  7,  2, false, false, 0, 0 },
-    {  8,  3, false, false, 0, 0 },
-    {  9,  4, false, false, 0, 0 }
+    {  .pin = 44, .id = 1 },
+    {  .pin = 7,  .id = 2 },
+    {  .pin = 8,  .id = 3 },
+    {  .pin = 9,  .id = 4 },
 };
 
 const uint8_t N_PULSADORES = sizeof(p)/sizeof(p[0]);
