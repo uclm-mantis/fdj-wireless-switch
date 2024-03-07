@@ -4,9 +4,18 @@
 #include <esp_netif.h>
 #include <esp_wifi.h>
 #include <esp_now.h>
+#include <esp_log.h>
 #include <driver/gpio.h>
 
-static const char *TAG = "receiver";
+#if CONFIG_ESPNOW_WIFI_MODE_STATION
+#define ESPNOW_WIFI_MODE WIFI_MODE_STA
+#define ESPNOW_WIFI_IF   ESP_IF_WIFI_STA
+#else
+#define ESPNOW_WIFI_MODE WIFI_MODE_AP
+#define ESPNOW_WIFI_IF   ESP_IF_WIFI_AP
+#endif
+
+static const char *TAG = "receptor";
 
 typedef struct salida_ salida;
 struct salida_
@@ -17,10 +26,10 @@ struct salida_
 };
 
 salida salidas[] = {
-    { .id = 1, .pin = GPIO_NUM_6,   .pinModoPulsador = GPIO_NUM_0 },
-    { .id = 2, .pin = GPIO_NUM_7,   .pinModoPulsador = GPIO_NUM_1 },
-    { .id = 3, .pin = GPIO_NUM_8,   .pinModoPulsador = GPIO_NUM_3 },
-    { .id = 4, .pin = GPIO_NUM_10,  .pinModoPulsador = GPIO_NUM_4 },
+    { .id = 1, .pin = GPIO_NUM_1,  .pinModoPulsador = GPIO_NUM_5 },
+    { .id = 2, .pin = GPIO_NUM_2,  .pinModoPulsador = GPIO_NUM_6 },
+    { .id = 3, .pin = GPIO_NUM_3,  .pinModoPulsador = GPIO_NUM_7 },
+    { .id = 4, .pin = GPIO_NUM_4,  .pinModoPulsador = GPIO_NUM_8 },
 };
 
 const uint8_t N_SALIDAS = sizeof(salidas) / sizeof(salidas[0]);
@@ -75,6 +84,7 @@ static void espnow_receiver_cb(const esp_now_recv_info_t * info, const uint8_t *
         if (msg->id == s->id) {
             if (gpio_get_level(s->pinModoPulsador)) gpio_set_level(s->pin, msg->presionado);
             else if (msg->presionado) gpio_set_level(s->pin, !gpio_get_level(s->pin));
+            ESP_LOGI(TAG, "Hit %d %s", msg->id, msg->presionado?"PRESS":"RELEASE");
             break;
         }
     }
@@ -83,16 +93,15 @@ static void espnow_receiver_cb(const esp_now_recv_info_t * info, const uint8_t *
 static void espnow_init()
 {
     ESP_ERROR_CHECK(esp_now_init());
-    ESP_ERROR_CHECK(esp_now_register_recv_cb(espnow_recv_cb));
+    ESP_ERROR_CHECK(esp_now_register_recv_cb(espnow_receiver_cb));
 #if CONFIG_ESPNOW_ENABLE_POWER_SAVE
     ESP_ERROR_CHECK(esp_now_set_wake_window(CONFIG_ESPNOW_WAKE_WINDOW));
     ESP_ERROR_CHECK(esp_wifi_connectionless_module_set_wake_interval(CONFIG_ESPNOW_WAKE_INTERVAL));
 #endif
-    /* Set primary master key. */
     ESP_ERROR_CHECK(esp_now_set_pmk((uint8_t *)CONFIG_ESPNOW_PMK));
 }
 
-void app_main(void)
+extern "C" void app_main(void)
 {
     salidas_init();
     wifi_init();
