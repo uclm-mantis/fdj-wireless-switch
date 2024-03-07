@@ -18,27 +18,27 @@ struct pulsador_ {
     TickType_t lastT;
 };
 
-pulsador p[] = {
-    {  .pin = 44, .id = 1 },
-    {  .pin = 7,  .id = 2 },
-    {  .pin = 8,  .id = 3 },
-    {  .pin = 9,  .id = 4 },
+pulsador pulsadores[] = {
+    {  .pin = 1, .id = 1 },
+    {  .pin = 2, .id = 2 },
+    {  .pin = 3, .id = 3 },
+    {  .pin = 4, .id = 4 },
 };
 
-const uint8_t N_PULSADORES = sizeof(p)/sizeof(p[0]);
+const uint8_t N_PULSADORES = sizeof(pulsadores)/sizeof(pulsadores[0]);
 
 // REPLACE WITH YOUR RECEIVER MAC Address
 //EC:DA:3B:3A:69:78
 //C0:4E:30:82:67:6C
 //40:4C:CA:F9:E6:34
 esp_now_peer_info_t peer = {
-    .peer_addr = { 0x40, 0x4C, 0xCA, 0xF9, 0xE6, 0x34 },
+    .peer_addr = { 0x40, 0x4c, 0xca, 0xf5, 0x24, 0xa8 },
     .channel = 0,
     .encrypt = false
 };
 
 typedef struct message_ {
-  uint8_t id; // Identificador único para cada emisor
+  uint8_t id;
   bool presionado;
 } message;
 
@@ -74,18 +74,18 @@ void setup() {
     ESP_ERROR_CHECK(esp_now_register_send_cb(onDataSent));
     ESP_ERROR_CHECK(esp_now_add_peer(&peer));
 
-    for (int i=0; i < N_PULSADORES; ++i) {
-        uint8_t pin = p[i].pin;
-        pinMode(pin, INPUT_PULLUP);
-        p[i].lastV = digitalRead(pin);
-        p[i].lastT = xTaskGetTickCount();
-        attachInterruptArg(pin, isr, &p[i], CHANGE);
+    for (pulsador* p = pulsadores; p < pulsadores + N_PULSADORES; ++p) {
+        pinMode(p->pin, INPUT_PULLUP);
+        p->presionado = false; p->liberado = false;
+        p->lastV = digitalRead(p->pin);
+        p->lastT = xTaskGetTickCount();
+        attachInterruptArg(p->pin, isr, p, CHANGE);
     }
 }
 
 void loop() {
-    for (int i=0; i < N_PULSADORES; ++i) {
-        checkEvent(&p[i]);
+    for (pulsador* p = pulsadores; p < pulsadores + N_PULSADORES; ++p) {
+        checkEvent(p);
     }
     // Ahora debería dormir todo lo que pueda
     // https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/api-reference/system/sleep_modes.html
