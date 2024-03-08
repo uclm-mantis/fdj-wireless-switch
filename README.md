@@ -7,7 +7,7 @@ Primera versión del conmutador inalámbrico para juguetes adaptados. Utiliza ES
 En `emisor/main/main.cpp` editar la definición de pulsadores. El campo `.id` se utiliza para ligarlo a la salida con el mismo valor en el receptor.
 
 ```c
-pulsador p[] = {
+pulsador pulsadores[] = {
     {  .pin = 44, .id = 1 },
     {  .pin = 7,  .id = 2 },
     {  .pin = 8,  .id = 3 },
