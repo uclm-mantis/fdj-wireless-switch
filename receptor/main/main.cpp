@@ -23,6 +23,7 @@ struct salida_
     const uint8_t id;
     const gpio_num_t pin;
     const gpio_num_t pinModoPulsador;
+    unsigned v;
 };
 
 salida salidas[] = {
@@ -44,6 +45,7 @@ static void salidas_init()
         gpio_reset_pin(s->pinModoPulsador);
         gpio_set_direction(s->pinModoPulsador, GPIO_MODE_INPUT);
         gpio_pullup_en(s->pinModoPulsador);
+        gpio_set_level(s->pin, (s->v = 0));
     }
 }
 
@@ -82,9 +84,9 @@ static void espnow_receiver_cb(const esp_now_recv_info_t * info, const uint8_t *
     // TODO: si recibe broadcast añade a la lista de peers (ver ejemplo de ESP-IDF)
     for (salida* s = salidas; s < salidas + N_SALIDAS; ++s) {
         if (msg->id == s->id) {
-            if (gpio_get_level(s->pinModoPulsador)) gpio_set_level(s->pin, msg->presionado);
-            else if (msg->presionado) gpio_set_level(s->pin, !gpio_get_level(s->pin));
-            ESP_LOGI(TAG, "Hit %d %s", msg->id, msg->presionado?"PRESS":"RELEASE");
+            if (gpio_get_level(s->pinModoPulsador)) gpio_set_level(s->pin, (s->v = msg->presionado));
+            else if (msg->presionado) gpio_set_level(s->pin, (s->v = !s->v));
+            ESP_LOGI(TAG, "Hit %d = %d (%s)", msg->id, s->v, msg->presionado?"PRESS":"RELEASE");
             break;
         }
     }
