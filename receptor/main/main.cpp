@@ -27,10 +27,10 @@ struct salida_
 };
 
 salida salidas[] = {
-    { .id = 1, .pin = GPIO_NUM_1,  .pinModoPulsador = GPIO_NUM_5 },
-    { .id = 2, .pin = GPIO_NUM_2,  .pinModoPulsador = GPIO_NUM_6 },
-    { .id = 3, .pin = GPIO_NUM_3,  .pinModoPulsador = GPIO_NUM_7 },
-    { .id = 4, .pin = GPIO_NUM_4,  .pinModoPulsador = GPIO_NUM_8 },
+    { .id = 1, .pin = GPIO_NUM_6,  .pinModoPulsador = GPIO_NUM_3, .v = 0 },
+    { .id = 2, .pin = GPIO_NUM_7,  .pinModoPulsador = GPIO_NUM_2, .v = 0 },
+    { .id = 3, .pin = GPIO_NUM_8,  .pinModoPulsador = GPIO_NUM_1, .v = 0 },
+    { .id = 4, .pin = GPIO_NUM_10,  .pinModoPulsador = GPIO_NUM_0, .v = 0 },
 };
 
 const uint8_t N_SALIDAS = sizeof(salidas) / sizeof(salidas[0]);
