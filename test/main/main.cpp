@@ -51,40 +51,10 @@ typedef struct message_ {
   bool presionado;
 } message;
 
-/*void register_button_event(pulsador* button) {
-    int v = gpio_get_level(button->pin);
-    if (v != button->lastV) { 
-        button->presionado = (v == 0);
-        button->liberado = (v != 0);
-        button->lastV = v;
-    }
-}*/
-
-/*void isr(void* param) {
-    pulsador* button = (pulsador*) param;
-    TickType_t current = xTaskGetTickCountFromISR();
-    if (current - button->lastT > 50 / portTICK_PERIOD_MS) { // debouncing
-        register_button_event(button);
-        button->lastT = current;
-    }
-}*/
-
-/*static void check_button_event(pulsador* button) {
-    if (!button->presionado && !button->liberado) return;
-
-    ESP_LOGI(TAG, "event %d %s", button->id, button->presionado?"PRESSED":"RELEASED");
-    message msg = { button->id, button->presionado };
-    ESP_ERROR_CHECK_WITHOUT_ABORT(esp_now_send(peer.peer_addr, (uint8_t *)&msg, sizeof(msg)));
-    button->presionado = false; button->liberado = false;
-}*/
-
 static void entradas_init() {
     for (pulsador* p = pulsadores; p < pulsadores + N_PULSADORES; ++p) {
         gpio_reset_pin(p->pin);
         gpio_set_direction(p->pin, GPIO_MODE_INPUT);
-        //_en(p->pin);
-        //gpio_set_intr_type(p->pin, GPIO_INTR_ANYEDGE);
-        //gpio_isr_handler_add(p->pin, isr, p);
     }
 }
 
@@ -145,7 +115,7 @@ void digital_out(uint8_t pin,bool v)
 {
     ESP_LOGI(TAG, "out %d %s", pin, v?"PRESSED":"RELEASED");
     message msg = { (uint8_t)pin, v };
-    ESP_ERROR_CHECK_WITHOUT_ABORT(esp_now_send(peer.peer_addr, (uint8_t *)&msg, sizeof(msg)));
+    ESP_ERROR_CHECK_WITHOUT_ABORT(esp_now_send(peer.peer_addr, (uint8_t*)&msg, sizeof(msg)));
 }
 
 void check_in(uint8_t pin, bool v)
@@ -153,32 +123,31 @@ void check_in(uint8_t pin, bool v)
     bool err = (!gpio_get_level((gpio_num_t)pin) != v);
     if (err) error = 1;
     ESP_LOGI(TAG, "check %d %d %s", pin, v, err?"BAD":"OK");
-    
 }
 
 #define POUT(n) pulsadores[n].id
 #define PIN(n) ((uint8_t)pulsadores[n].pin)
 
 action_t actions[] = {
-    {100,  digital_out, POUT(0), 1},
-    {100,  check_in, PIN(0), 1},
+    {100, digital_out, POUT(0), 1},
+    {100, check_in, PIN(0), 1},
     {100, digital_out, POUT(0), 0},
-    {100,  check_in, PIN(0), 0},
+    {100, check_in, PIN(0), 0},
 
-    {100,  digital_out, POUT(1), 1},
-    {100,  check_in, PIN(1), 1},
+    {100, digital_out, POUT(1), 1},
+    {100, check_in, PIN(1), 1},
     {100, digital_out, POUT(1), 0},
-    {100,  check_in, PIN(1), 0},
+    {100, check_in, PIN(1), 0},
 
-    {100,  digital_out, POUT(2), 1},
-    {100,  check_in, PIN(2), 1},
+    {100, digital_out, POUT(2), 1},
+    {100, check_in, PIN(2), 1},
     {100, digital_out, POUT(2), 0},
-    {100,  check_in, PIN(2), 0},
+    {100, check_in, PIN(2), 0},
 
-    {100,  digital_out, POUT(3), 1},
-    {100,  check_in, PIN(3), 1},
+    {100, digital_out, POUT(3), 1},
+    {100, check_in, PIN(3), 1},
     {100, digital_out, POUT(3), 0},
-    {100,  check_in, PIN(3), 0},
+    {100, check_in, PIN(3), 0},
 };
 
 extern "C" void app_main(void)
