@@ -38,7 +38,7 @@ const uint8_t N_PULSADORES = sizeof(pulsadores)/sizeof(pulsadores[0]);
 
 // TODO: peer_addr should not be hardcoded
 esp_now_peer_info_t peer = {
-    .peer_addr = {  0xEC, 0xDA, 0x3B, 0x3A, 0x69, 0x78 },
+    .peer_addr = {  0xC0, 0x4E, 0x30, 0x82, 0x67, 0x6C },
     .channel = CONFIG_ESPNOW_CHANNEL,
     .ifidx = ESPNOW_WIFI_IF,
     .encrypt = false

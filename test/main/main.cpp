@@ -39,8 +39,9 @@ const uint8_t N_PULSADORES = N_ELEMS(pulsadores);
 // TODO: peer_addr should not be hardcoded
     //0x40, 0x4C, 0xCA, 0xF9, 0xE6, 0x34
     //0xEC, 0xDA, 0x3B, 0x3A, 0x69, 0x78
+    //0xC0, 0x4E, 0x30, 0x82, 0x67, 0x6C
 esp_now_peer_info_t peer = {
-    .peer_addr = {  0xEC, 0xDA, 0x3B, 0x3A, 0x69, 0x78 },
+    .peer_addr = {  0xC0, 0x4E, 0x30, 0x82, 0x67, 0x6C },
     .channel = CONFIG_ESPNOW_CHANNEL,
     .ifidx = ESPNOW_WIFI_IF,
     .encrypt = false
@@ -100,7 +101,7 @@ static void espnow_init()
     ESP_ERROR_CHECK(esp_now_add_peer(&peer));
 }
 
-int error;
+bool error;
 
 typedef void (*actionFunction_t)(uint8_t, bool);
 
@@ -121,33 +122,34 @@ void digital_out(uint8_t pin,bool v)
 void check_in(uint8_t pin, bool v)
 {
     bool err = (!gpio_get_level((gpio_num_t)pin) != v);
-    if (err) error = 1;
+    if (err) error = true;
     ESP_LOGI(TAG, "check %d %d %s", pin, v, err?"BAD":"OK");
 }
+
 
 #define POUT(n) pulsadores[n].id
 #define PIN(n) ((uint8_t)pulsadores[n].pin)
 
 action_t actions[] = {
-    {100, digital_out, POUT(0), 1},
-    {100, check_in, PIN(0), 1},
-    {100, digital_out, POUT(0), 0},
-    {100, check_in, PIN(0), 0},
+    {25,  digital_out, POUT(0), 1},
+    {25,  check_in, PIN(0), 1},
+    {25, digital_out, POUT(0), 0},
+    {25,  check_in, PIN(0), 0},
 
-    {100, digital_out, POUT(1), 1},
-    {100, check_in, PIN(1), 1},
-    {100, digital_out, POUT(1), 0},
-    {100, check_in, PIN(1), 0},
+    {25,  digital_out, POUT(1), 1},
+    {25,  check_in, PIN(1), 1},
+    {25, digital_out, POUT(1), 0},
+    {25,  check_in, PIN(1), 0},
 
-    {100, digital_out, POUT(2), 1},
-    {100, check_in, PIN(2), 1},
-    {100, digital_out, POUT(2), 0},
-    {100, check_in, PIN(2), 0},
+    {25,  digital_out, POUT(2), 1},
+    {25,  check_in, PIN(2), 1},
+    {25, digital_out, POUT(2), 0},
+    {25,  check_in, PIN(2), 0},
 
-    {100, digital_out, POUT(3), 1},
-    {100, check_in, PIN(3), 1},
-    {100, digital_out, POUT(3), 0},
-    {100, check_in, PIN(3), 0},
+    {25,  digital_out, POUT(3), 1},
+    {25,  check_in, PIN(3), 1},
+    {25, digital_out, POUT(3), 0},
+    {25,  check_in, PIN(3), 0},
 };
 
 extern "C" void app_main(void)
@@ -156,11 +158,18 @@ extern "C" void app_main(void)
     wifi_init();
     espnow_init();
     TickType_t last = xTaskGetTickCount();
-    for (action_t* current = actions; current < actions + N_ELEMS(actions); ++current) {
+    for (size_t count = 0; count < 100; count++)
+    {
+        for (action_t* current = actions; current < actions + N_ELEMS(actions); ++current) {
         xTaskDelayUntil(&last, current->t);
         current->f(current->pin, current->v);
+        }
+        gpio_set_level(LED, error);
+
+        // Imprimir el número de repetición
+        ESP_LOGI(TAG, "Repetición número: %d", count + 1);
+
     }
-    gpio_set_level(LED, error);
 
     for(;;) xTaskDelayUntil(&last, 100);
 }
